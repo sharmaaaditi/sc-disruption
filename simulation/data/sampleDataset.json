@@ -1,0 +1,217 @@
+{
+  "network": {
+    "nodes": [
+      {
+        "id": "sup-1",
+        "name": "Supplier North (Primary)",
+        "type": "SUPPLIER",
+        "capacity": 2000,
+        "leadTime": 0
+      },
+      {
+        "id": "sup-2",
+        "name": "Supplier South (Backup)",
+        "type": "SUPPLIER",
+        "capacity": 1500,
+        "leadTime": 0
+      },
+      {
+        "id": "wh-1",
+        "name": "Central Warehouse",
+        "type": "WAREHOUSE",
+        "capacity": 5000,
+        "leadTime": 0
+      },
+      {
+        "id": "dc-1",
+        "name": "Regional Distribution Center",
+        "type": "DISTRIBUTION_CENTER",
+        "capacity": 3000,
+        "leadTime": 0
+      },
+      {
+        "id": "ret-1",
+        "name": "Retail Outlet Downtown",
+        "type": "RETAILER",
+        "capacity": 500,
+        "leadTime": 0
+      },
+      {
+        "id": "ret-2",
+        "name": "Retail Outlet Suburbs",
+        "type": "RETAILER",
+        "capacity": 500,
+        "leadTime": 0
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-1",
+        "fromNodeId": "sup-1",
+        "toNodeId": "wh-1",
+        "distance": 150,
+        "travelTime": 2,
+        "capacity": 500,
+        "costPerUnit": 1.5
+      },
+      {
+        "id": "edge-2",
+        "fromNodeId": "sup-2",
+        "toNodeId": "wh-1",
+        "distance": 250,
+        "travelTime": 3,
+        "capacity": 400,
+        "costPerUnit": 2.2
+      },
+      {
+        "id": "edge-3",
+        "fromNodeId": "wh-1",
+        "toNodeId": "dc-1",
+        "distance": 80,
+        "travelTime": 1,
+        "capacity": 800,
+        "costPerUnit": 0.8
+      },
+      {
+        "id": "edge-4",
+        "fromNodeId": "dc-1",
+        "toNodeId": "ret-1",
+        "distance": 25,
+        "travelTime": 1,
+        "capacity": 300,
+        "costPerUnit": 0.5
+      },
+      {
+        "id": "edge-5",
+        "fromNodeId": "dc-1",
+        "toNodeId": "ret-2",
+        "distance": 40,
+        "travelTime": 1,
+        "capacity": 300,
+        "costPerUnit": 0.6
+      },
+      {
+        "id": "edge-6",
+        "fromNodeId": "wh-1",
+        "toNodeId": "ret-1",
+        "distance": 100,
+        "travelTime": 2,
+        "capacity": 200,
+        "costPerUnit": 1.2
+      }
+    ]
+  },
+  "inventory": [
+    {
+      "nodeId": "sup-1",
+      "productId": "prod-1",
+      "quantity": 1000,
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    },
+    {
+      "nodeId": "sup-2",
+      "productId": "prod-1",
+      "quantity": 800,
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    },
+    {
+      "nodeId": "wh-1",
+      "productId": "prod-1",
+      "quantity": 150,
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    },
+    {
+      "nodeId": "dc-1",
+      "productId": "prod-1",
+      "quantity": 60,
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    },
+    {
+      "nodeId": "ret-1",
+      "productId": "prod-1",
+      "quantity": 30,
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    },
+    {
+      "nodeId": "ret-2",
+      "productId": "prod-1",
+      "quantity": 20,
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    }
+  ],
+  "orders": [
+    {
+      "orderId": "ord-1",
+      "nodeId": "ret-1",
+      "productId": "prod-1",
+      "quantity": 40,
+      "dueStep": 1,
+      "status": "PENDING",
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    },
+    {
+      "orderId": "ord-2",
+      "nodeId": "ret-1",
+      "productId": "prod-1",
+      "quantity": 50,
+      "dueStep": 3,
+      "status": "PENDING",
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    },
+    {
+      "orderId": "ord-3",
+      "nodeId": "ret-2",
+      "productId": "prod-1",
+      "quantity": 60,
+      "dueStep": 4,
+      "status": "PENDING",
+      "product": {
+        "name": "Industrial Component X",
+        "sku": "SKU-CMP-X"
+      }
+    }
+  ],
+  "disruptions": [
+    {
+      "id": "dis-1",
+      "type": "SUPPLIER_FAILURE",
+      "targetId": "sup-1",
+      "startStep": 2,
+      "duration": 4,
+      "severity": 1.0,
+      "description": "Primary supplier factory shutdown due to power failure"
+    }
+  ],
+  "config": {
+    "totalSteps": 10,
+    "replenishmentThreshold": 40,
+    "reorderBatchSize": 80,
+    "unitDelayPenalty": 25,
+    "unitStockoutPenalty": 50,
+    "unitTransportCost": 1.0
+  }
+}
