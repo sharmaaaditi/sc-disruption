@@ -7,9 +7,12 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node simulation/server.js",
+    "test": "node --test simulation/tests/*.test.js",
+    "checkpoint": "node simulation/scripts/checkpointRun.js"
   },
   "dependencies": {
+    "express": "^5.3.0",
     "node": "^22.23.3"
   }
 }
