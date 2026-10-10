@@ -5,3 +5,77 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model SupplyChain {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  nodes Node[]
+}
+
+model Node {
+  id            String @id @default(cuid())
+  name          String
+  type          String
+  supplyChainId String
+
+  supplyChain SupplyChain @relation(fields: [supplyChainId], references: [id])
+  outgoing    Edge[]      @relation("FromNode")
+  incoming    Edge[]      @relation("ToNode")
+  inventory   Inventory[]
+  orders      Order[]
+}
+
+model Edge {
+  id         String @id @default(cuid())
+  fromNodeId String
+  toNodeId   String
+  distance   Float?
+  travelTime Float?
+
+  fromNode Node @relation("FromNode", fields: [fromNodeId], references: [id])
+  toNode   Node @relation("ToNode", fields: [toNodeId], references: [id])
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String
+  sku       String   @unique
+  createdAt DateTime @default(now())
+
+  inventory  Inventory[]
+  orderItems OrderItem[]
+}
+
+model Inventory {
+  id        String @id @default(cuid())
+  nodeId    String
+  productId String
+  quantity  Int    @default(0)
+
+  node    Node    @relation(fields: [nodeId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([nodeId, productId])
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  nodeId    String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  node  Node        @relation(fields: [nodeId], references: [id])
+  items OrderItem[]
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
