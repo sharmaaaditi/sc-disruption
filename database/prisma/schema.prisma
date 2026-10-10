@@ -64,6 +64,7 @@ model Order {
   id        String   @id @default(cuid())
   nodeId    String
   status    String   @default("PENDING")
+  dueStep   Int      @default(0)
   createdAt DateTime @default(now())
 
   node  Node        @relation(fields: [nodeId], references: [id])
