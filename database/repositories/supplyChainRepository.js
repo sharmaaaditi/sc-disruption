@@ -85,6 +85,7 @@ async function loadSimulationInput(supplyChainId) {
         productId: item.productId,
         quantity: item.quantity,
         status: order.status,
+        dueStep: order.dueStep,
         product: {
           name: item.product.name,
           sku: item.product.sku,
