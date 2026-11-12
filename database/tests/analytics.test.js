@@ -148,3 +148,13 @@ test("saving a missing run returns a clear error", async () => {
     /Simulation run not found: missing-run/
   );
 });
+
+test("saved analytics remain available after reconnecting", async () => {
+  await prisma.$disconnect();
+
+  const stored = await getRun("analytics-run-1");
+  assert.equal(stored.status, "COMPLETED");
+  assert.equal(stored.events.length, 1);
+  assert.equal(stored.events[0].message, "Replacement event");
+  assert.equal(stored.metrics.totalOrders, 1);
+});
