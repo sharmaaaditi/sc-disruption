@@ -37,6 +37,12 @@ the backend. It provides supply-chain lookup, creation, and listing, plus
 `loadSimulationInput()`, which maps a supply chain into the simulation
 contract: `{ network: { nodes, edges }, inventory, orders }`.
 
+`repositories/simulationRepository.js` owns scenario and analytics persistence.
+It creates scenarios and their disruptions, tracks simulation runs, stores an
+ordered event timeline and impact metrics in one transaction, and retrieves a
+saved impact summary after a restart. Saving the same run result again replaces
+its event timeline so retrying a persistence request does not duplicate events.
+
 Run the simulation integration check separately when the SimulationEngine
 source is available in `simulation/src/engine/SimulationEngine.js`:
 
