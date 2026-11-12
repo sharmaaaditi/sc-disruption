@@ -51,6 +51,8 @@ class SimulationEngine {
     this.affectedNodes = new Set();
     this.affectedEdges = new Set();
     this.stockoutCount = 0;
+    this.stockouts = new Set();
+    this.delayedOrders = new Set();
   }
 
   logEvent(step, type, targetType, targetId, message) {
@@ -153,6 +155,8 @@ class SimulationEngine {
           order.remainingQuantity -= available;
           order.status = 'DELAYED';
           this.stockoutCount++;
+          this.stockouts.add(`${order.orderId}:${order.nodeId}:${order.productId}`);
+          this.delayedOrders.add(order.orderId);
           this.affectedNodes.add(order.nodeId);
 
           this.logEvent(
@@ -165,6 +169,8 @@ class SimulationEngine {
         } else {
           order.status = 'DELAYED';
           this.stockoutCount++;
+          this.stockouts.add(`${order.orderId}:${order.nodeId}:${order.productId}`);
+          this.delayedOrders.add(order.orderId);
           this.affectedNodes.add(order.nodeId);
 
           this.logEvent(
@@ -275,6 +281,18 @@ class SimulationEngine {
     const totalDemand = this.orders.reduce((sum, o) => sum + o.demandedQuantity, 0);
     const fulfilledQuantity = this.orders.reduce((sum, o) => sum + o.fulfilledQuantity, 0);
     const remainingQuantity = this.orders.reduce((sum, o) => sum + o.remainingQuantity, 0);
+    const inventory = [];
+
+    for (const [nodeId, products] of this.inventory.entries()) {
+      for (const [productId, quantity] of products.entries()) {
+        inventory.push({ nodeId, productId, quantity });
+      }
+    }
+
+    const recoveryTime = this.disruptions.reduce((longest, disruption) => {
+      const recoveryStep = disruption.startStep + disruption.duration;
+      return recoveryStep < this.totalSteps ? Math.max(longest, disruption.duration) : longest;
+    }, 0);
 
     return {
       runId: this.runId,
@@ -286,8 +304,16 @@ class SimulationEngine {
         fulfilledQuantity,
         remainingQuantity,
         stockoutEvents: this.stockoutCount,
+        stockouts: this.stockouts.size,
+        delayedOrders: this.delayedOrders.size,
+        additionalCost: 0,
+        recoveryTime,
         affectedNodes: Array.from(this.affectedNodes),
         affectedEdges: Array.from(this.affectedEdges),
+      },
+      finalState: {
+        inventory,
+        orders: this.orders.map((order) => ({ ...order })),
       },
       events: this.events,
       timeline: this.timeline,
