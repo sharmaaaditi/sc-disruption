@@ -141,3 +141,10 @@ test("saving a run result again replaces events without duplicates", async () =>
   assert.equal(stored.events[0].message, "Replacement event");
   assert.equal(stored.metrics.totalOrders, 1);
 });
+
+test("saving a missing run returns a clear error", async () => {
+  await assert.rejects(
+    saveRunResult("missing-run", { metrics: {}, events: [] }),
+    /Simulation run not found: missing-run/
+  );
+});

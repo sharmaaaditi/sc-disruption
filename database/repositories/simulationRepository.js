@@ -45,6 +45,15 @@ async function saveRunResult(runId, result) {
   const events = result.events || [];
 
   return prisma.$transaction(async (tx) => {
+    const run = await tx.simulationRun.findUnique({
+      where: { id: runId },
+      select: { id: true },
+    });
+
+    if (!run) {
+      throw new Error(`Simulation run not found: ${runId}`);
+    }
+
     await tx.simulationEvent.deleteMany({ where: { runId } });
 
     if (events.length > 0) {
