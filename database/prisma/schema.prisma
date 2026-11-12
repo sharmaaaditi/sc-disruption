@@ -11,7 +11,8 @@ model SupplyChain {
   name      String
   createdAt DateTime @default(now())
 
-  nodes Node[]
+  nodes     Node[]
+  scenarios Scenario[]
 }
 
 model Node {
@@ -64,6 +65,7 @@ model Order {
   id        String   @id @default(cuid())
   nodeId    String
   status    String   @default("PENDING")
+  dueStep   Int      @default(0)
   createdAt DateTime @default(now())
 
   node  Node        @relation(fields: [nodeId], references: [id])
@@ -78,4 +80,80 @@ model OrderItem {
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+}
+
+model Scenario {
+  id            String   @id @default(cuid())
+  supplyChainId String
+  name          String
+  createdAt     DateTime @default(now())
+
+  supplyChain SupplyChain     @relation(fields: [supplyChainId], references: [id])
+  disruptions Disruption[]
+  runs        SimulationRun[]
+
+  @@index([supplyChainId, createdAt])
+}
+
+model Disruption {
+  id         String @id @default(cuid())
+  scenarioId String
+  type       String
+  targetId   String
+  startStep  Int
+  duration   Int
+
+  scenario Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@index([scenarioId, startStep])
+}
+
+model SimulationRun {
+  id          String    @id @default(cuid())
+  scenarioId  String
+  status      String    @default("PENDING")
+  totalSteps  Int
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  scenario Scenario          @relation(fields: [scenarioId], references: [id])
+  events   SimulationEvent[]
+  metrics  SimulationMetric?
+
+  @@index([scenarioId, startedAt])
+}
+
+model SimulationEvent {
+  id         String @id @default(cuid())
+  runId      String
+  sequence   Int
+  step       Int
+  type       String
+  targetType String
+  targetId   String
+  message    String
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, sequence])
+  @@index([runId, step, sequence])
+}
+
+model SimulationMetric {
+  id                String @id @default(cuid())
+  runId             String @unique
+  totalOrders       Int
+  totalDemand       Int
+  fulfilledQuantity Int
+  remainingQuantity Int
+  stockoutEvents    Int
+  stockouts         Int
+  delayedOrders     Int
+  additionalCost    Float
+  recoveryTime      Int
+  affectedNodes     Json
+  affectedEdges     Json
+  finalState        Json?
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
 }

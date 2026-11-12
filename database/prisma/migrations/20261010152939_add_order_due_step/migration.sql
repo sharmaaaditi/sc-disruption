@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "dueStep" INTEGER NOT NULL DEFAULT 0;
