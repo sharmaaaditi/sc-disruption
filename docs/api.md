@@ -1,7 +1,10 @@
 # Backend API contract
 
-The Node API is started from the repository root with `npm start` and listens on
-`PORT` (default `3000`). All responses are JSON. Success responses use
+From the repository root, run `npm run dev` to start the API with automatic
+restart on code changes, or `npm start` for a normal start. The API listens on
+`PORT` (default `3000`). Before starting it, install/configure the database by
+following [`database/README.md`](../database/README.md). All responses are JSON.
+Success responses use
 `{ "success": true, "data": ... }`; errors use
 `{ "success": false, "error": { "code": "...", "message": "..." } }`.
 

@@ -7,6 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "dev": "node --watch backend/server.js",
     "start": "node backend/server.js",
     "test": "node --test simulation/tests/*.test.js backend/tests/*.test.js",
     "checkpoint": "node simulation/scripts/checkpointRun.js"
