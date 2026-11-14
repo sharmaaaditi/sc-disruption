@@ -40,6 +40,16 @@ function createRun({ id, scenarioId, totalSteps }) {
   });
 }
 
+function markRunFailed(runId) {
+  return prisma.simulationRun.update({
+    where: { id: runId },
+    data: {
+      status: "FAILED",
+      completedAt: new Date(),
+    },
+  });
+}
+
 async function saveRunResult(runId, result) {
   const metrics = result.metrics || {};
   const events = result.events || [];
@@ -128,6 +138,7 @@ module.exports = {
   createScenario,
   getScenario,
   createRun,
+  markRunFailed,
   saveRunResult,
   getRun,
   getImpactSummary,

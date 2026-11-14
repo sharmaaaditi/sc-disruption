@@ -7,8 +7,9 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "node simulation/server.js",
-    "test": "node --test simulation/tests/*.test.js",
+    "dev": "node --watch backend/server.js",
+    "start": "node backend/server.js",
+    "test": "node --test simulation/tests/*.test.js backend/tests/*.test.js",
     "checkpoint": "node simulation/scripts/checkpointRun.js"
   },
   "dependencies": {
