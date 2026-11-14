@@ -14,6 +14,7 @@ load the demo data:
 ```bash
 npm ci --prefix database
 cd database
+npx prisma generate
 npx prisma migrate deploy
 node seed.js
 npm test
