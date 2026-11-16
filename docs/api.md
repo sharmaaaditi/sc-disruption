@@ -50,6 +50,59 @@ Steps are zero-based, and a disruption is active from `startStep` through
 A successful request returns HTTP `201` and a `data` object containing `runId`,
 `scenarioId`, `status`, `totalSteps`, `metrics`, `finalState`, and `events`.
 
+## Simulation history
+
+`GET /api/supply-chains/:id/simulations` returns saved simulation runs for the
+selected supply chain in `data`, along with pagination details in `pagination`.
+
+### Query parameters
+
+- `status` (optional): Filter runs by status (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`).
+- `limit` (optional): Validated result limit (positive integer from `1` to `100`, default `10`).
+- `cursor` (optional): Stable cursor (`runId`) returning runs following that run.
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "run-id",
+      "runId": "run-id",
+      "scenarioId": "scenario-id",
+      "scenarioName": "Primary supplier outage",
+      "status": "COMPLETED",
+      "totalSteps": 10,
+      "startedAt": "2026-11-14T10:00:00.000Z",
+      "completedAt": "2026-11-14T10:00:01.000Z",
+      "metrics": {
+        "totalOrders": 1,
+        "totalDemand": 50,
+        "fulfilledQuantity": 50,
+        "remainingQuantity": 0,
+        "stockoutEvents": 0,
+        "stockouts": 0,
+        "delayedOrders": 0,
+        "additionalCost": 0,
+        "recoveryTime": 0,
+        "affectedNodes": [],
+        "affectedEdges": []
+      }
+    }
+  ],
+  "pagination": {
+    "limit": 10,
+    "nextCursor": null,
+    "hasMore": false
+  }
+}
+```
+
+Invalid supply chain IDs return `400` (`INVALID_REQUEST`) or `404` (`SUPPLY_CHAIN_NOT_FOUND`).
+Invalid filters return `400` (`INVALID_FILTER`).
+Invalid limits return `400` (`INVALID_LIMIT`).
+
 ## Retrieve a simulation
 
 `GET /api/simulations/:id` returns the persisted run using the same result

@@ -117,6 +117,46 @@ async function getImpactSummary(runId) {
   };
 }
 
+async function listRunsBySupplyChain(supplyChainId, { status, limit = 10, cursor } = {}) {
+  const where = {
+    scenario: {
+      supplyChainId,
+    },
+  };
+  if (status) {
+    where.status = status;
+  }
+
+  const queryOptions = {
+    where,
+    orderBy: [
+      { startedAt: "desc" },
+      { id: "desc" },
+    ],
+    take: limit + 1,
+    include: {
+      scenario: true,
+      metrics: true,
+    },
+  };
+
+  if (cursor) {
+    queryOptions.cursor = { id: cursor };
+    queryOptions.skip = 1;
+  }
+
+  const runs = await prisma.simulationRun.findMany(queryOptions);
+  const hasMore = runs.length > limit;
+  const items = hasMore ? runs.slice(0, limit) : runs;
+  const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].id : null;
+
+  return {
+    runs: items,
+    hasMore,
+    nextCursor,
+  };
+}
+
 function mapMetrics(metrics, finalState) {
   return {
     totalOrders: metrics.totalOrders || 0,
@@ -142,4 +182,6 @@ module.exports = {
   saveRunResult,
   getRun,
   getImpactSummary,
+  listRunsBySupplyChain,
+  getRunsBySupplyChain: listRunsBySupplyChain,
 };

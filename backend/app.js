@@ -30,6 +30,15 @@ function createApp({
     }
   });
 
+  app.get("/api/supply-chains/:id/simulations", async (req, res, next) => {
+    try {
+      const { runs, pagination } = await service.getSimulationHistory(req.params.id, req.query);
+      res.json({ success: true, data: runs, pagination });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post("/api/supply-chains/:id/simulations", async (req, res, next) => {
     try {
       const result = await service.startSimulation(req.params.id, req.body);
