@@ -2,12 +2,14 @@ const express = require("express");
 const { runSimulation } = require("../simulation/src");
 const ApiError = require("./errors");
 const { createSimulationService } = require("./services/simulationService");
+const { createCorsMiddleware } = require("./cors");
 
 function createApp({
   supplyChainRepository = require("../database/repositories/supplyChainRepository"),
   simulationRepository = require("../database/repositories/simulationRepository"),
   simulationRunner = runSimulation,
   logger = console,
+  corsOrigins = process.env.CORS_ORIGINS,
 } = {}) {
   const app = express();
   const service = createSimulationService({
@@ -16,6 +18,7 @@ function createApp({
     runSimulation: simulationRunner,
   });
 
+  app.use(createCorsMiddleware(corsOrigins));
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/api/health", (req, res) => {

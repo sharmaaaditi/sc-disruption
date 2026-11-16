@@ -8,6 +8,32 @@ Success responses use
 `{ "success": true, "data": ... }`; errors use
 `{ "success": false, "error": { "code": "...", "message": "..." } }`.
 
+## CORS and Cross-Origin Access
+
+The backend provides built-in CORS middleware to support browser clients such as
+the P1 React frontend.
+
+- Allowed origins are configured via the `CORS_ORIGINS` environment variable as a
+  comma-separated list of origins (e.g. `http://localhost:5173,http://localhost:3000`).
+- If `CORS_ORIGINS` is not defined or empty, the API defaults to safe local development
+  origins: `http://localhost:5173`, `http://localhost:3000`, `http://127.0.0.1:5173`,
+  and `http://127.0.0.1:3000`.
+- Browser preflight (`OPTIONS`) requests are intercepted and answered with HTTP `204`
+  and appropriate CORS headers (`Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Headers`, `Access-Control-Max-Age`) for authorized origins.
+  Requests from unapproved origins receive HTTP `403` with no CORS headers.
+- Unrestricted wildcards (`*`) are disallowed to protect API endpoints and sensitive data.
+
+### Local development setup
+
+When developing the frontend locally on Vite / React (port `5173`), requests are
+permitted by default. For custom local ports or production hosts, define `CORS_ORIGINS`:
+
+```bash
+export CORS_ORIGINS="http://localhost:5173,http://localhost:8080,https://app.example.com"
+npm run dev
+```
+
 ## Health
 
 `GET /api/health` returns `{ "status": "ok" }` inside `data`.

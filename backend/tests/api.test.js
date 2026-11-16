@@ -360,4 +360,91 @@ describe("backend API", () => {
       await new Promise((resolve) => instance.close(resolve));
     }
   });
+
+  it("handles CORS headers and preflight for allowed and rejected origins", async () => {
+    // 1. Default configuration: localhost allowed, external origin rejected
+    const defaultContext = createTestContext();
+    const instance1 = defaultContext.app.listen(0);
+    await new Promise((resolve) => instance1.once("listening", resolve));
+    try {
+      const base = `http://127.0.0.1:${instance1.address().port}`;
+
+      // Allowed origin GET request
+      const allowedRes = await fetch(`${base}/api/health`, {
+        headers: { Origin: "http://localhost:5173" },
+      });
+      assert.equal(allowedRes.status, 200);
+      assert.equal(allowedRes.headers.get("access-control-allow-origin"), "http://localhost:5173");
+      assert.equal(allowedRes.headers.get("vary"), "Origin");
+
+      // Rejected origin GET request
+      const rejectedRes = await fetch(`${base}/api/health`, {
+        headers: { Origin: "http://malicious-website.com" },
+      });
+      assert.equal(rejectedRes.status, 200);
+      assert.equal(rejectedRes.headers.get("access-control-allow-origin"), null);
+
+      // Preflight OPTIONS for allowed origin
+      const preflightAllowed = await fetch(`${base}/api/supply-chains/chain-1/simulations`, {
+        method: "OPTIONS",
+        headers: {
+          Origin: "http://localhost:5173",
+          "Access-Control-Request-Method": "POST",
+          "Access-Control-Request-Headers": "Content-Type",
+        },
+      });
+      assert.equal(preflightAllowed.status, 204);
+      assert.equal(preflightAllowed.headers.get("access-control-allow-origin"), "http://localhost:5173");
+      assert.ok(preflightAllowed.headers.get("access-control-allow-methods").includes("POST"));
+      assert.ok(preflightAllowed.headers.get("access-control-allow-headers").includes("Content-Type"));
+
+      // Preflight OPTIONS for rejected origin
+      const preflightRejected = await fetch(`${base}/api/supply-chains/chain-1/simulations`, {
+        method: "OPTIONS",
+        headers: {
+          Origin: "http://malicious-website.com",
+          "Access-Control-Request-Method": "POST",
+        },
+      });
+      assert.equal(preflightRejected.status, 403);
+      assert.equal(preflightRejected.headers.get("access-control-allow-origin"), null);
+    } finally {
+      instance1.closeAllConnections();
+      await new Promise((resolve) => instance1.close(resolve));
+    }
+
+    // 2. Custom comma-separated origins
+    const customApp = createApp({
+      supplyChainRepository: { async getAllSupplyChains() { return []; } },
+      simulationRepository: {},
+      logger: { error() {} },
+      corsOrigins: "https://frontend.company.com, https://staging.company.com",
+    });
+    const instance2 = customApp.listen(0);
+    await new Promise((resolve) => instance2.once("listening", resolve));
+    try {
+      const base = `http://127.0.0.1:${instance2.address().port}`;
+
+      const res1 = await fetch(`${base}/api/health`, {
+        headers: { Origin: "https://frontend.company.com" },
+      });
+      assert.equal(res1.status, 200);
+      assert.equal(res1.headers.get("access-control-allow-origin"), "https://frontend.company.com");
+
+      const res2 = await fetch(`${base}/api/health`, {
+        headers: { Origin: "https://staging.company.com" },
+      });
+      assert.equal(res2.status, 200);
+      assert.equal(res2.headers.get("access-control-allow-origin"), "https://staging.company.com");
+
+      const res3 = await fetch(`${base}/api/health`, {
+        headers: { Origin: "http://localhost:5173" },
+      });
+      assert.equal(res3.status, 200);
+      assert.equal(res3.headers.get("access-control-allow-origin"), null);
+    } finally {
+      instance2.closeAllConnections();
+      await new Promise((resolve) => instance2.close(resolve));
+    }
+  });
 });
