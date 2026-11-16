@@ -139,3 +139,30 @@ exposing internal error details.
 The database persists run events and final state/metrics. It does not persist
 the engine's per-step inventory timeline, so retrieval intentionally returns
 the stored event history rather than a reconstructed timeline.
+
+## Database API integration testing
+
+An automated end-to-end integration test (`backend/tests/databaseIntegration.test.js`)
+verifies the complete flow:
+
+Node API -> PostgreSQL/Prisma -> Simulation Engine -> Saved Run -> Retrieval API
+
+To safeguard development and user data, this test runs against an isolated test
+database configured via `DATABASE_URL_TEST`. It creates uniquely named test records
+and cleans up only those records upon test completion.
+
+### Local setup and execution
+
+1. Create a dedicated test database (e.g. `sc_disruption_test`) in PostgreSQL.
+2. Apply migrations to the test database:
+   ```bash
+   DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/sc_disruption_test?schema=public" npx prisma migrate deploy --schema=database/prisma/schema.prisma
+   ```
+3. Run the integration test:
+   ```bash
+   DATABASE_URL_TEST="postgresql://USER:PASSWORD@localhost:5432/sc_disruption_test?schema=public" npm run test:integration
+   ```
+   Or run the full test suite including the database integration test:
+   ```bash
+   DATABASE_URL_TEST="postgresql://USER:PASSWORD@localhost:5432/sc_disruption_test?schema=public" npm test
+   ```
