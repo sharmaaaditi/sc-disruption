@@ -2,9 +2,9 @@ import {useEffect, useMemo, useState, type FormEvent} from 'react';
 import {AlertTriangle, LoaderCircle, Play} from 'lucide-react';
 import type {SimulationRequest, SupplyChain} from '../types';
 
-type Props = {supplyChain: SupplyChain; busy: boolean; onRun: (request: SimulationRequest) => Promise<void>};
+type Props = {supplyChain: SupplyChain; busy: boolean; authorized: boolean; onRun: (request: SimulationRequest) => Promise<void>};
 
-export function SimulationPanel({supplyChain, busy, onRun}: Props) {
+export function SimulationPanel({supplyChain, busy, authorized, onRun}: Props) {
   const suppliers = useMemo(() => supplyChain.nodes.filter((node) => node.type === 'SUPPLIER'), [supplyChain.nodes]);
   const [targetId, setTargetId] = useState(suppliers[0]?.id || '');
   const [startStep, setStartStep] = useState(1);
@@ -31,7 +31,8 @@ export function SimulationPanel({supplyChain, busy, onRun}: Props) {
         <label>Duration<input type="number" min="1" value={duration} onChange={(event) => setDuration(Number(event.target.value))} /></label>
       </div>
       <label>Simulation steps<input type="number" min="2" value={totalSteps} onChange={(event) => setTotalSteps(Number(event.target.value))} /></label>
-      <button className="primary-action" type="submit" disabled={busy || !targetId || startStep >= totalSteps}>{busy ? <LoaderCircle className="spin" aria-hidden="true" /> : <Play aria-hidden="true" />}{busy ? 'Running simulation' : 'Run simulation'}</button>
+      <button className="primary-action" type="submit" disabled={!authorized || busy || !targetId || startStep >= totalSteps}>{busy ? <LoaderCircle className="spin" aria-hidden="true" /> : <Play aria-hidden="true" />}{busy ? 'Running simulation' : 'Run simulation'}</button>
+      {!authorized && <p className="permission-note">Viewer access is read-only. An analyst or administrator can start simulations.</p>}
       {!suppliers.length && <p className="field-error">This network has no supplier node to disrupt.</p>}
     </form>
   );
