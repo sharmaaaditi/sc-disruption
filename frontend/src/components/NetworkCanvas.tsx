@@ -23,7 +23,7 @@ function toFlowNodes(nodes: SupplyChainNode[]): Node[] {
 export function NetworkCanvas({nodes}: {nodes: SupplyChainNode[]}) {
   return (
     <div className="network-canvas" aria-label="Supply-chain facilities">
-      <ReactFlow nodes={toFlowNodes(nodes)} edges={[]} fitView fitViewOptions={{padding: 0.22}} minZoom={0.55} maxZoom={1.5} nodesConnectable={false} elementsSelectable proOptions={{hideAttribution: false}}>
+      <ReactFlow nodes={toFlowNodes(nodes)} edges={[]} fitView fitViewOptions={{padding: 0.22}} minZoom={0.2} maxZoom={1.5} nodesConnectable={false} elementsSelectable proOptions={{hideAttribution: false}}>
         <Background variant={BackgroundVariant.Dots} color="rgba(159,177,181,0.25)" gap={24} />
         <Controls showInteractive={false} />
       </ReactFlow>
