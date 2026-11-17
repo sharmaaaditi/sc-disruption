@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  font-family: 'Geist', 'Avenir Next', sans-serif;
+  color: var(--text-primary);
+  background: var(--canvas);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --canvas: #071319;
+  --surface: #10252d;
+  --surface-strong: #17343d;
+  --paper: #e8efe9;
+  --text-primary: #f4f7f2;
+  --text-secondary: #9fb1b5;
+  --ink: #102127;
+  --signal: #34d6c6;
+  --warning: #ff8a3d;
+  --recovery: #b8e34a;
+  --failure: #ff647c;
+  --line: rgba(159, 177, 181, 0.22);
+  --focus: 0 0 0 3px rgba(52, 214, 198, 0.36);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: radial-gradient(circle at 14% 0%, rgba(52, 214, 198, 0.1), transparent 28rem), radial-gradient(circle at 88% 18%, rgba(255, 138, 61, 0.08), transparent 30rem), var(--canvas);
+}
+button, input, select { font: inherit; }
+a, button, input, select { outline: none; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { box-shadow: var(--focus); }
+.app-shell { width: min(100%, 1600px); min-height: 100vh; margin: 0 auto; padding: 20px clamp(20px, 4vw, 64px) 80px; overflow-x: hidden; }
+.topbar { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--line); }
+.brand { display: inline-flex; align-items: center; gap: 12px; color: var(--text-primary); font-weight: 650; text-decoration: none; letter-spacing: -0.02em; }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--signal); color: var(--signal); border-radius: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+.topbar-status { display: inline-flex; align-items: center; gap: 9px; color: var(--text-secondary); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.status-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--recovery); box-shadow: 0 0 18px rgba(184, 227, 74, 0.65); }
+.shell-intro { width: 100%; min-height: 540px; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr); align-items: center; gap: clamp(48px, 8vw, 120px); padding: 88px 0 96px; }
+.eyebrow { margin: 0 0 22px; color: var(--signal); font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+h1 { max-width: 1180px; margin: 0; color: var(--text-primary); font-size: clamp(3.4rem, 7.2vw, 7.6rem); line-height: 0.91; letter-spacing: -0.07em; }
+.lede { max-width: 720px; margin: 32px 0 0; color: var(--text-secondary); font-size: clamp(1.05rem, 1.8vw, 1.35rem); line-height: 1.55; }
+.intro-orbit { position: relative; width: min(32vw, 380px); aspect-ratio: 1; display: grid; place-items: center; justify-self: end; color: var(--signal); border: 1px solid rgba(52, 214, 198, 0.4); border-radius: 50%; background: rgba(16, 37, 45, 0.56); }
+.orbit { position: absolute; inset: 14%; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 50%; }
+.orbit-two { inset: -9%; border-color: rgba(255, 138, 61, 0.22); }
+.placeholder-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.placeholder-grid article { min-height: 260px; padding: 34px; background: var(--surface); }
+.placeholder-grid svg { color: var(--signal); }
+.placeholder-grid h2 { margin: 64px 0 12px; font-size: 1.45rem; letter-spacing: -0.035em; }
+.placeholder-grid p { max-width: 34ch; margin: 0; color: var(--text-secondary); line-height: 1.55; }
+@media (max-width: 880px) {
+  .shell-intro { grid-template-columns: 1fr; min-height: auto; }
+  .intro-orbit { width: min(72vw, 340px); justify-self: center; }
+  .placeholder-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .app-shell { padding-inline: 16px; }
+  .topbar { align-items: flex-start; padding-block: 16px; }
+  .topbar-status { max-width: 130px; text-align: right; }
+  .shell-intro { padding-block: 64px 80px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

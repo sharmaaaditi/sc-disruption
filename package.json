@@ -10,7 +10,10 @@
     "dev": "node --watch backend/server.js",
     "start": "node backend/server.js",
     "test": "node --test simulation/tests/*.test.js backend/tests/*.test.js",
-    "checkpoint": "node simulation/scripts/checkpointRun.js"
+    "checkpoint": "node simulation/scripts/checkpointRun.js",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:test": "npm --prefix frontend run test"
   },
   "dependencies": {
     "express": "^5.3.0",
