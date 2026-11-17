@@ -5,6 +5,7 @@ import {api, ApiError} from './api';
 import networkStrip from './assets/network-strip.svg';
 import {NetworkCanvas} from './components/NetworkCanvas';
 import {SimulationPanel} from './components/SimulationPanel';
+import {ResultsDashboard} from './components/ResultsDashboard';
 import type {SimulationRequest, SimulationResult, SupplyChain} from './types';
 
 type Health = 'checking' | 'online' | 'offline';
@@ -104,9 +105,11 @@ export default function App() {
         </div>
       </section>
 
-      <section className="result-placeholder" id="results" aria-live="polite">
-        {result ? <><p className="eyebrow">Latest completed run</p><h2>{result.status}</h2><p>Run {result.runId} finished across {result.totalSteps} steps. Detailed impact presentation follows in the next frontend milestone.</p></> : <><p className="eyebrow">Impact analysis</p><h2>Results will collect here.</h2><p>Run a supplier interruption to reveal metrics, final inventory, delayed orders, and the ordered event timeline.</p></>}
-      </section>
+      {result ? <ResultsDashboard result={result} /> : (
+        <section className="result-placeholder" id="results" aria-live="polite">
+          <p className="eyebrow">Impact analysis</p><h2>Results will collect here.</h2><p>Run a supplier interruption to reveal metrics, final inventory, delayed orders, and the ordered event timeline.</p>
+        </section>
+      )}
     </main>
   );
 }
