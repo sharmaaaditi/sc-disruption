@@ -1,64 +1,78 @@
 const assert = require("node:assert/strict");
+const { randomUUID } = require("node:crypto");
 const { after, before, test } = require("node:test");
-const prisma = require("../client");
-const {
-  createScenario,
-  createRun,
-  getImpactSummary,
-  getRun,
-  getScenario,
-  saveRunResult,
-  listRunsBySupplyChain,
-} = require("../repositories/simulationRepository");
+const testDbUrl = process.env.DATABASE_URL_TEST;
 
-before(async () => {
-  await prisma.simulationEvent.deleteMany();
-  await prisma.simulationMetric.deleteMany();
-  await prisma.simulationRun.deleteMany();
-  await prisma.disruption.deleteMany();
-  await prisma.scenario.deleteMany();
-});
+if (!testDbUrl) {
+  test("analytics persistence requires DATABASE_URL_TEST", { skip: true }, () => {});
+} else {
+  process.env.DATABASE_URL_TEST = testDbUrl;
+  const prisma = require("../client");
+  const {
+    createScenario,
+    createRun,
+    getImpactSummary,
+    getRun,
+    getScenario,
+    saveRunResult,
+    listRunsBySupplyChain,
+  } = require("../repositories/simulationRepository");
+  const testId = randomUUID().slice(0, 8);
+  const supplyChainId = `analytics-chain-${testId}`;
+  const scenarioName = `Supplier A outage ${testId}`;
+  const runId = `analytics-run-${testId}`;
+  const run2Id = `analytics-run-2-${testId}`;
+  let scenarioId;
 
-after(async () => {
-  await prisma.simulationEvent.deleteMany();
-  await prisma.simulationMetric.deleteMany();
-  await prisma.simulationRun.deleteMany();
-  await prisma.disruption.deleteMany();
-  await prisma.scenario.deleteMany();
-  await prisma.$disconnect();
-});
+  before(async () => {
+    await prisma.supplyChain.create({
+      data: { id: supplyChainId, name: `Analytics test chain ${testId}` },
+    });
+    const scenario = await createScenario({
+      supplyChainId,
+      name: scenarioName,
+      disruptions: [
+        {
+          id: `analytics-disruption-${testId}`,
+          type: "SUPPLIER_FAILURE",
+          targetId: "supplier-a",
+          startStep: 1,
+          duration: 3,
+        },
+      ],
+    });
+    scenarioId = scenario.id;
+  });
+
+  after(async () => {
+    const runIds = [runId, run2Id];
+    await prisma.simulationEvent.deleteMany({ where: { runId: { in: runIds } } });
+    await prisma.simulationMetric.deleteMany({ where: { runId: { in: runIds } } });
+    await prisma.simulationRun.deleteMany({ where: { id: { in: runIds } } });
+    if (scenarioId) {
+      await prisma.disruption.deleteMany({ where: { scenarioId } });
+      await prisma.scenario.deleteMany({ where: { id: scenarioId } });
+    }
+    await prisma.supplyChain.deleteMany({ where: { id: supplyChainId } });
+    await prisma.$disconnect();
+  });
 
 test("scenario stores its disruption definition", async () => {
-  const scenario = await createScenario({
-    supplyChainId: "demo-supply-chain",
-    name: "Supplier A outage",
-    disruptions: [
-      {
-        id: "analytics-disruption-1",
-        type: "SUPPLIER_FAILURE",
-        targetId: "supplier-a",
-        startStep: 1,
-        duration: 3,
-      },
-    ],
-  });
+  const scenario = await getScenario(scenarioId);
 
   assert.equal(scenario.disruptions.length, 1);
   assert.equal(scenario.disruptions[0].targetId, "supplier-a");
   assert.equal(scenario.disruptions[0].duration, 3);
 
   const stored = await getScenario(scenario.id);
-  assert.equal(stored.name, "Supplier A outage");
+  assert.equal(stored.name, scenarioName);
   assert.equal(stored.runs.length, 0);
 });
 
 test("run result persists ordered events and impact metrics", async () => {
-  const scenario = await prisma.scenario.findFirstOrThrow({
-    where: { name: "Supplier A outage" },
-  });
   const run = await createRun({
-    id: "analytics-run-1",
-    scenarioId: scenario.id,
+    id: runId,
+    scenarioId,
     totalSteps: 5,
   });
 
@@ -123,7 +137,7 @@ test("run result persists ordered events and impact metrics", async () => {
 });
 
 test("saving a run result again replaces events without duplicates", async () => {
-  await saveRunResult("analytics-run-1", {
+  await saveRunResult(runId, {
     status: "COMPLETED",
     metrics: { totalOrders: 1 },
     events: [
@@ -137,20 +151,16 @@ test("saving a run result again replaces events without duplicates", async () =>
     ],
   });
 
-  const stored = await getRun("analytics-run-1");
+  const stored = await getRun(runId);
   assert.equal(stored.events.length, 1);
   assert.equal(stored.events[0].message, "Replacement event");
   assert.equal(stored.metrics.totalOrders, 1);
 });
 
 test("listRunsBySupplyChain filters by supply chain and status with pagination", async () => {
-  const scenario = await prisma.scenario.findFirstOrThrow({
-    where: { name: "Supplier A outage" },
-  });
-
   const run2 = await createRun({
-    id: "analytics-run-2",
-    scenarioId: scenario.id,
+    id: run2Id,
+    scenarioId,
     totalSteps: 5,
   });
   await saveRunResult(run2.id, {
@@ -159,25 +169,25 @@ test("listRunsBySupplyChain filters by supply chain and status with pagination",
     events: [],
   });
 
-  // Query all runs for demo-supply-chain
-  const allRuns = await listRunsBySupplyChain("demo-supply-chain");
-  assert.ok(allRuns.runs.length >= 2);
+  // Query all runs for the isolated test supply chain
+  const allRuns = await listRunsBySupplyChain(supplyChainId);
+  assert.equal(allRuns.runs.length, 2);
 
   // Filter by status COMPLETED
-  const completed = await listRunsBySupplyChain("demo-supply-chain", { status: "COMPLETED" });
+  const completed = await listRunsBySupplyChain(supplyChainId, { status: "COMPLETED" });
   assert.ok(completed.runs.every((r) => r.status === "COMPLETED"));
 
   // Filter by status FAILED
-  const failed = await listRunsBySupplyChain("demo-supply-chain", { status: "FAILED" });
+  const failed = await listRunsBySupplyChain(supplyChainId, { status: "FAILED" });
   assert.ok(failed.runs.every((r) => r.status === "FAILED"));
 
   // Limit and pagination
-  const paged = await listRunsBySupplyChain("demo-supply-chain", { limit: 1 });
+  const paged = await listRunsBySupplyChain(supplyChainId, { limit: 1 });
   assert.equal(paged.runs.length, 1);
   assert.equal(paged.hasMore, true);
   assert.ok(paged.nextCursor);
 
-  const nextPage = await listRunsBySupplyChain("demo-supply-chain", {
+  const nextPage = await listRunsBySupplyChain(supplyChainId, {
     limit: 1,
     cursor: paged.nextCursor,
   });
@@ -189,3 +199,4 @@ test("listRunsBySupplyChain filters by supply chain and status with pagination",
   assert.equal(otherChain.runs.length, 0);
   assert.equal(otherChain.hasMore, false);
 });
+}
