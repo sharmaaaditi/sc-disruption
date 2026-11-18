@@ -10,6 +10,7 @@
     "dev": "node --watch backend/server.js",
     "start": "node backend/server.js",
     "test": "node --test simulation/tests/*.test.js backend/tests/*.test.js",
+    "test:integration": "node --test backend/tests/databaseIntegration.test.js",
     "checkpoint": "node simulation/scripts/checkpointRun.js"
   },
   "dependencies": {

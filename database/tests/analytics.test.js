@@ -8,6 +8,7 @@ const {
   getRun,
   getScenario,
   saveRunResult,
+  listRunsBySupplyChain,
 } = require("../repositories/simulationRepository");
 
 before(async () => {
@@ -140,4 +141,51 @@ test("saving a run result again replaces events without duplicates", async () =>
   assert.equal(stored.events.length, 1);
   assert.equal(stored.events[0].message, "Replacement event");
   assert.equal(stored.metrics.totalOrders, 1);
+});
+
+test("listRunsBySupplyChain filters by supply chain and status with pagination", async () => {
+  const scenario = await prisma.scenario.findFirstOrThrow({
+    where: { name: "Supplier A outage" },
+  });
+
+  const run2 = await createRun({
+    id: "analytics-run-2",
+    scenarioId: scenario.id,
+    totalSteps: 5,
+  });
+  await saveRunResult(run2.id, {
+    status: "FAILED",
+    metrics: { totalOrders: 0 },
+    events: [],
+  });
+
+  // Query all runs for demo-supply-chain
+  const allRuns = await listRunsBySupplyChain("demo-supply-chain");
+  assert.ok(allRuns.runs.length >= 2);
+
+  // Filter by status COMPLETED
+  const completed = await listRunsBySupplyChain("demo-supply-chain", { status: "COMPLETED" });
+  assert.ok(completed.runs.every((r) => r.status === "COMPLETED"));
+
+  // Filter by status FAILED
+  const failed = await listRunsBySupplyChain("demo-supply-chain", { status: "FAILED" });
+  assert.ok(failed.runs.every((r) => r.status === "FAILED"));
+
+  // Limit and pagination
+  const paged = await listRunsBySupplyChain("demo-supply-chain", { limit: 1 });
+  assert.equal(paged.runs.length, 1);
+  assert.equal(paged.hasMore, true);
+  assert.ok(paged.nextCursor);
+
+  const nextPage = await listRunsBySupplyChain("demo-supply-chain", {
+    limit: 1,
+    cursor: paged.nextCursor,
+  });
+  assert.equal(nextPage.runs.length, 1);
+  assert.notEqual(nextPage.runs[0].id, paged.runs[0].id);
+
+  // Non-matching supply chain returns empty runs
+  const otherChain = await listRunsBySupplyChain("non-existent-supply-chain");
+  assert.equal(otherChain.runs.length, 0);
+  assert.equal(otherChain.hasMore, false);
 });
