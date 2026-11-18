@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {Activity, AlertCircle, Database, LockKeyhole, Network, RefreshCw} from 'lucide-react';
+import {Activity, AlertCircle, Database, Network, RefreshCw} from 'lucide-react';
 import {gsap} from 'gsap';
 import {api, ApiError} from './api';
 import networkStrip from './assets/network-strip.svg';
@@ -7,14 +7,11 @@ import {NetworkCanvas} from './components/NetworkCanvas';
 import {SimulationPanel} from './components/SimulationPanel';
 import {ResultsDashboard} from './components/ResultsDashboard';
 import type {SimulationRequest, SimulationResult, SupplyChain} from './types';
-import {useAuth} from './auth';
-import {can} from './permissions';
 
 type Health = 'checking' | 'online' | 'offline';
 
 export default function App() {
   const root = useRef<HTMLElement>(null);
-  const auth = useAuth();
   const [health, setHealth] = useState<Health>('checking');
   const [supplyChains, setSupplyChains] = useState<SupplyChain[]>([]);
   const [selectedId, setSelectedId] = useState('');
@@ -58,9 +55,8 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (can(auth.user?.role || null, 'VIEW_NETWORK')) void loadWorkspace();
-    else if (auth.status !== 'loading') setLoading(false);
-  }, [auth.status, auth.user?.role]);
+    void loadWorkspace();
+  }, []);
 
   async function runSimulation(request: SimulationRequest) {
     if (!selected) return;
@@ -80,10 +76,7 @@ export default function App() {
     <main className="app-shell" ref={root}>
       <nav className="topbar" aria-label="Primary navigation">
         <a className="brand" href="#top" aria-label="SC Disruption home"><span className="brand-mark">SC</span><span>Disruption</span></a>
-        <div className="topbar-actions">
-          {auth.user && <span className="role-badge">{auth.user.role}{auth.source === 'demo' ? ' demo' : ''}</span>}
-          <div className={`topbar-status topbar-status--${health}`} role="status"><span className="status-dot" />API {health}</div>
-        </div>
+        <div className={`topbar-status topbar-status--${health}`} role="status"><span className="status-dot" />API {health}</div>
       </nav>
 
       <section className="shell-intro" id="top">
@@ -95,16 +88,9 @@ export default function App() {
         <div className="intro-orbit" aria-hidden="true"><Network size={52} strokeWidth={1.5} /><span className="orbit orbit-one" /><span className="orbit orbit-two" /></div>
       </section>
 
-      {auth.status === 'unavailable' && (
-        <section className="access-panel" aria-labelledby="access-heading">
-          <LockKeyhole aria-hidden="true" />
-          <div><p className="eyebrow">Access is closed</p><h2 id="access-heading">Waiting for verified identity.</h2><p>P2 must provide the authenticated-user endpoint before production access opens. For local interface development, set an explicit <code>VITE_DEMO_ROLE</code>.</p></div>
-        </section>
-      )}
-
       {error && <div className="error-banner" role="alert"><AlertCircle aria-hidden="true" /><span>{error}</span><button type="button" onClick={() => void loadWorkspace()}><RefreshCw aria-hidden="true" />Retry</button></div>}
 
-      {auth.status === 'authenticated' && <section className="workspace" aria-busy={loading}>
+      <section className="workspace" aria-busy={loading}>
         <header className="workspace-header">
           <div><p className="eyebrow">Operating network</p><h2>{loading ? 'Loading saved networks' : selected?.name || 'No supply chain available'}</h2></div>
           <label className="network-picker">Supply chain<select value={selected?.id || ''} onChange={(event) => {setSelectedId(event.target.value); setResult(null);}} disabled={loading || !supplyChains.length}>{supplyChains.map((chain) => <option key={chain.id} value={chain.id}>{chain.name}</option>)}</select></label>
@@ -115,15 +101,15 @@ export default function App() {
             <div className="panel-heading"><div><p className="eyebrow">Facility map</p><h3>{selected ? `${selected.nodes.length} connected facilities` : 'Waiting for data'}</h3></div><Database aria-hidden="true" /></div>
             {selected ? <NetworkCanvas nodes={selected.nodes} /> : <div className="empty-state"><Activity aria-hidden="true" /><p>Start the backend and seed PostgreSQL to load a network.</p></div>}
           </article>
-          {selected ? <SimulationPanel supplyChain={selected} busy={running} authorized={can(auth.user?.role || null, 'RUN_SIMULATION')} onRun={runSimulation} /> : <aside className="simulation-panel simulation-panel--empty"><p>Simulation controls become available after a network loads.</p></aside>}
+          {selected ? <SimulationPanel supplyChain={selected} busy={running} onRun={runSimulation} /> : <aside className="simulation-panel simulation-panel--empty"><p>Simulation controls become available after a network loads.</p></aside>}
         </div>
-      </section>}
+      </section>
 
-      {auth.status === 'authenticated' && (result ? <ResultsDashboard result={result} /> : (
+      {result ? <ResultsDashboard result={result} /> : (
         <section className="result-placeholder" id="results" aria-live="polite">
           <p className="eyebrow">Impact analysis</p><h2>Results will collect here.</h2><p>Run a supplier interruption to reveal metrics, final inventory, delayed orders, and the ordered event timeline.</p>
         </section>
-      ))}
+      )}
     </main>
   );
 }
