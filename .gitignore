@@ -17,6 +17,10 @@ node_modules/
 # Build
 dist/
 build/
+
+# Local browser checks
+.playwright-cli/
+output/
 # Logs
 logs
 *.log

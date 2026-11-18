@@ -4,7 +4,7 @@
 
 SC Disruption is a graph-based simulation platform that models how supply-chain failures propagate through interconnected **suppliers, warehouses, distribution centers, and retailers**.
 
-Users can introduce disruptions and analyze their effects on inventory, orders, routes, costs, and recovery.
+The current MVP lets users choose a saved network, run a supplier disruption, and inspect persisted inventory, order, metric, and event results. Recovery optimization and account authentication are planned follow-up work.
 
 ## 🎯 Problem Statement
 
@@ -16,18 +16,17 @@ SC Disruption simulates these scenarios and helps evaluate possible recovery str
 
 ### 🌐 Network Visualization
 
-* Suppliers, warehouses, DCs, retailers
-* Transportation routes
-* Capacity and lead times
-* Network dependencies
+* Suppliers, warehouses, distribution centers, and retailers
+* Facility map for the saved network
+* Network data loaded from the database API
+
+Detailed route and capacity visualizations remain planned.
 
 ### 💥 Disruption Simulation
 
 * Supplier failure
-* Reduced capacity
-* Warehouse/DC failure
-* Route blockage
-* Shipment delays
+* Warehouse/DC outage and route-blockage engine inputs
+* Inventory, order, and stockout impact calculation
 
 ### ⚙️ Simulation Engine
 
@@ -47,11 +46,7 @@ SC Disruption simulates these scenarios and helps evaluate possible recovery str
 
 ### 🔄 Recovery & Optimization
 
-* Alternative suppliers
-* Alternative routes
-* Inventory redistribution
-* Capacity reallocation
-* Recovery strategy comparison
+Recovery strategy comparison is planned. The current engine reports recovery timing and impact metrics but does not yet generate alternative strategies.
 
 ## 🧠 Technical Core
 
@@ -63,8 +58,9 @@ Algorithms include:
 * Failure propagation
 * Reachability analysis
 * Shortest-path routing
-* Capacity-aware routing
-* Alternative path discovery
+* Shortest-path and reachability helpers
+
+Capacity-aware routing and alternative-path optimization are planned extensions.
 
 Optimization considers:
 
@@ -85,71 +81,28 @@ Run Simulation
       ↓
 Propagate Impact
       ↓
-Analyze Losses
-      ↓
-Generate Recovery Strategies
+Analyze Impact
 ```
 
 ## 🛠️ Tech Stack
 
-**Frontend:** React, TypeScript, Tailwind CSS, React Flow, Recharts
-**Backend:** Node.js, Express, TypeScript, Socket.IO
+**Frontend:** React, TypeScript, Vite, React Flow, Recharts, GSAP
+**Backend:** Node.js and Express
 **Database:** PostgreSQL, Prisma
-**Infrastructure:** Docker, Redis, BullMQ
+**Infrastructure:** Local Node.js and PostgreSQL services
+
+Redis, BullMQ, Socket.IO, Docker orchestration, and background workers are not
+part of the current checked-in MVP.
 
 ## 📁 Project Structure
 
 ```text
-sc-disruption/
-│
-├── apps/
-│   ├── web/                       # React frontend
-│   │   ├── components/            # UI components
-│   │   ├── pages/                 # Application pages
-│   │   ├── hooks/                 # Custom React hooks
-│   │   ├── services/              # API & WebSocket services
-│   │   └── main.tsx
-│   │
-│   └── api/                       # Node.js backend
-│       ├── routes/                # API routes
-│       ├── controllers/           # Request handlers
-│       ├── services/              # Business logic
-│       ├── middleware/            # Validation & middleware
-│       └── server.ts
-│
-├── packages/
-│   ├── simulation/                # Simulation engine
-│   │   ├── engine/
-│   │   ├── events/
-│   │   └── state/
-│   │
-│   ├── graph/                     # Graph algorithms
-│   │   ├── algorithms/
-│   │   └── models/
-│   │
-│   ├── optimization/              # Recovery strategies
-│   │   └── strategies/
-│   │
-│   ├── database/                  # Prisma & database models
-│   │   └── prisma/
-│   │
-│   └── shared/                    # Shared types & utilities
-│
-├── workers/                       # Background simulation jobs
-│   ├── simulation-worker/
-│   └── optimization-worker/
-│
-├── tests/                         # Automated tests
-│   ├── simulation/
-│   ├── graph/
-│   └── optimization/
-│
-├── docs/                          # Technical documentation
-│   ├── architecture.md
-│   ├── simulation.md
-│   └── algorithms.md
-│
-├── docker-compose.yml
+sc-disruption-app/
+├── backend/                       # Express API and service layer
+├── database/                      # Prisma schema, migrations, repositories
+├── simulation/                    # Graph and simulation engine
+├── frontend/                      # React/Vite application
+├── docs/                          # API and design documentation
 ├── package.json
 └── README.md
 ```
@@ -159,14 +112,17 @@ sc-disruption/
 ```bash
 git clone https://github.com/sharmaaaditi/sc-disruption.git
 cd sc-disruption
-npm install
+npm ci
+npm ci --prefix frontend
 
-docker compose up -d
-
-npx prisma migrate dev
+# Configure PostgreSQL and database/.env first; see database/README.md.
 npm run dev
+npm run frontend:dev
 ```
 
 ## 🏁 Conclusion
 
-**SC Disruption** combines graph algorithms, event-driven simulation, inventory modeling, optimization, and real-time visualization to study supply-chain resilience under disruptions.
+**SC Disruption** currently combines graph algorithms, event-driven simulation,
+database persistence, and a browser dashboard to study supply-chain resilience
+under disruptions. Optimization workers, real-time messaging, and account
+authentication are planned rather than current features.
