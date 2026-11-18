@@ -11,6 +11,7 @@
     "start": "node backend/server.js",
     "test": "node --test simulation/tests/*.test.js backend/tests/*.test.js",
     "checkpoint": "node simulation/scripts/checkpointRun.js",
+    "test:integration": "node --test backend/tests/databaseIntegration.test.js",
     "frontend:dev": "npm --prefix frontend run dev",
     "frontend:build": "npm --prefix frontend run build",
     "frontend:test": "npm --prefix frontend run test"

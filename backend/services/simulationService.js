@@ -7,6 +7,7 @@ const SUPPORTED_DISRUPTION_TYPES = new Set([
   DisruptionType.NODE_OUTAGE,
   DisruptionType.EDGE_BLOCKAGE,
 ]);
+const VALID_STATUSES = new Set(["PENDING", "RUNNING", "COMPLETED", "FAILED"]);
 const METRIC_FIELDS = [
   "totalOrders",
   "totalDemand",
@@ -107,6 +108,63 @@ function createSimulationService({
         events: run.events || [],
       };
     },
+
+    async getSimulationHistory(supplyChainId, query = {}) {
+      validateId(supplyChainId, "supplyChainId");
+
+      if (typeof supplyChainRepository.getSupplyChain === "function") {
+        const supplyChain = await supplyChainRepository.getSupplyChain(supplyChainId);
+        if (!supplyChain) {
+          throw new ApiError(404, "SUPPLY_CHAIN_NOT_FOUND", "Supply chain was not found");
+        }
+      } else if (typeof supplyChainRepository.loadSimulationInput === "function") {
+        try {
+          await supplyChainRepository.loadSimulationInput(supplyChainId);
+        } catch (error) {
+          if (error.message === "Supply chain not found") {
+            throw new ApiError(404, "SUPPLY_CHAIN_NOT_FOUND", "Supply chain was not found");
+          }
+          throw error;
+        }
+      }
+
+      const { status, limit, cursor } = validateHistoryQuery(query);
+
+      const listMethod =
+        simulationRepository.listRunsBySupplyChain ||
+        simulationRepository.getRunsBySupplyChain;
+
+      if (typeof listMethod !== "function") {
+        throw new ApiError(500, "INTERNAL_SERVER_ERROR", "Repository method listRunsBySupplyChain not implemented");
+      }
+
+      const result = await listMethod.call(simulationRepository, supplyChainId, {
+        status,
+        limit,
+        cursor,
+      });
+
+      const runs = (result.runs || []).map((run) => ({
+        id: run.id,
+        runId: run.id,
+        scenarioId: run.scenarioId,
+        scenarioName: run.scenario?.name || null,
+        status: run.status,
+        totalSteps: run.totalSteps,
+        startedAt: run.startedAt,
+        completedAt: run.completedAt,
+        metrics: run.metrics ? normalizeMetrics(run.metrics) : null,
+      }));
+
+      return {
+        runs,
+        pagination: {
+          limit,
+          nextCursor: result.nextCursor || null,
+          hasMore: Boolean(result.hasMore),
+        },
+      };
+    },
   };
 }
 
@@ -123,6 +181,39 @@ function validateId(value, field) {
   if (typeof value !== "string" || value.trim() === "") {
     throw new ApiError(400, "INVALID_REQUEST", `${field} must be a non-empty string`);
   }
+}
+
+function validateHistoryQuery(query = {}) {
+  let status;
+  if (query.status !== undefined) {
+    if (typeof query.status !== "string" || !VALID_STATUSES.has(query.status.toUpperCase())) {
+      throw new ApiError(400, "INVALID_FILTER", "status filter must be one of: PENDING, RUNNING, COMPLETED, FAILED");
+    }
+    status = query.status.toUpperCase();
+  }
+
+  let limit = 10;
+  if (query.limit !== undefined) {
+    const rawLimit = typeof query.limit === "string" ? query.limit.trim() : query.limit;
+    const parsed = Number(rawLimit);
+    if (!/^\d+$/.test(String(rawLimit)) || !Number.isSafeInteger(parsed) || parsed <= 0) {
+      throw new ApiError(400, "INVALID_LIMIT", "limit must be a positive integer between 1 and 100");
+    }
+    if (parsed > 100) {
+      throw new ApiError(400, "INVALID_LIMIT", "limit cannot exceed 100");
+    }
+    limit = parsed;
+  }
+
+  let cursor;
+  if (query.cursor !== undefined) {
+    if (typeof query.cursor !== "string" || !query.cursor.trim()) {
+      throw new ApiError(400, "INVALID_REQUEST", "cursor must be a non-empty string");
+    }
+    cursor = query.cursor.trim();
+  }
+
+  return { status, limit, cursor };
 }
 
 function validateStartRequest(body) {
