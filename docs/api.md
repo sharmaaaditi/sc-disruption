@@ -40,7 +40,9 @@ npm run dev
 
 ## List supply chains
 
-`GET /api/supply-chains` returns the supply chains and their nodes in `data`.
+`GET /api/supply-chains` returns the supply chains in `data`. Each chain includes
+its `nodes` and directed `edges`. An edge has an ID, source and destination node
+IDs, and optional distance and travel time values.
 
 ## Start a simulation
 

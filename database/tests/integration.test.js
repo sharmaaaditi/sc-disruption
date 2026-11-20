@@ -71,9 +71,10 @@ test("seeded data has the expected counts and relationships", async () => {
 
 test("repository queries return the simulation input contract", async () => {
   const allSupplyChains = await getAllSupplyChains();
-  assert.equal(allSupplyChains.length, 1);
-  assert.equal(allSupplyChains[0].id, "demo-supply-chain");
-  assert.equal(allSupplyChains[0].nodes.length, 4);
+  const demoChain = allSupplyChains.find(({ id }) => id === "demo-supply-chain");
+  assert.ok(demoChain);
+  assert.equal(demoChain.nodes.length, 4);
+  assert.equal(demoChain.edges.length, 3);
 
   const supplyChain = await getSupplyChain("demo-supply-chain");
   assert.ok(supplyChain);

@@ -35,10 +35,19 @@ async function createSupplyChain(data) {
 }
 
 async function getAllSupplyChains() {
-  return prisma.supplyChain.findMany({
+  const supplyChains = await prisma.supplyChain.findMany({
     include: {
-      nodes: true,
+      nodes: { include: { outgoing: true } },
     },
+  });
+
+  return supplyChains.map(({ nodes, ...chain }) => {
+    const nodeIds = new Set(nodes.map((node) => node.id));
+    return {
+      ...chain,
+      nodes: nodes.map(({ outgoing, ...node }) => node),
+      edges: nodes.flatMap((node) => node.outgoing.filter((edge) => nodeIds.has(edge.toNodeId))),
+    };
   });
 }
 

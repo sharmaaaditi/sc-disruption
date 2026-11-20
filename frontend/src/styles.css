@@ -76,7 +76,6 @@ select, input { width: 100%; min-height: 48px; color: var(--text-primary); backg
 .react-flow__controls { overflow: hidden; border: 1px solid var(--line); border-radius: 10px; box-shadow: none; }
 .react-flow__controls-button { color: var(--text-primary); background: var(--surface-strong); border-bottom-color: var(--line); }
 .react-flow__controls-button:hover { background: #21434c; }
-.canvas-note { position: absolute; right: 14px; bottom: 10px; z-index: 5; max-width: 360px; margin: 0; color: var(--text-secondary); font-size: 11px; text-align: right; pointer-events: none; }
 .simulation-panel { padding: 28px; display: flex; flex-direction: column; gap: 18px; }
 .simulation-panel label { display: grid; gap: 8px; color: var(--text-secondary); font-size: 0.84rem; }
 .field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
