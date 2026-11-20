@@ -158,7 +158,7 @@ and cleans up only those records upon test completion.
 1. Create a dedicated test database (e.g. `sc_disruption_test`) in PostgreSQL.
 2. Apply migrations to the test database:
    ```bash
-   DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/sc_disruption_test?schema=public" npx prisma migrate deploy --schema=database/prisma/schema.prisma
+   (cd database && DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/sc_disruption_test?schema=public" npx prisma migrate deploy)
    ```
 3. Run the integration test:
    ```bash
