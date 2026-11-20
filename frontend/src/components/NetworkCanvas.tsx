@@ -1,6 +1,6 @@
-import {Background, BackgroundVariant, Controls, ReactFlow, type Node} from '@xyflow/react';
+import {Background, BackgroundVariant, Controls, MarkerType, Position, ReactFlow, type Edge, type Node} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type {NodeType, SupplyChainNode} from '../types';
+import type {NodeType, SupplyChainEdge, SupplyChainNode} from '../types';
 
 const columns: Record<NodeType, number> = {SUPPLIER: 40, WAREHOUSE: 310, DISTRIBUTION_CENTER: 580, RETAILER: 850};
 
@@ -13,6 +13,8 @@ function toFlowNodes(nodes: SupplyChainNode[]): Node[] {
       id: node.id,
       position: {x: columns[node.type], y: 64 + index * 128},
       data: {label: node.name},
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
       className: `network-node network-node--${node.type.toLowerCase()}`,
       draggable: false,
       selectable: true,
@@ -20,14 +22,23 @@ function toFlowNodes(nodes: SupplyChainNode[]): Node[] {
   });
 }
 
-export function NetworkCanvas({nodes}: {nodes: SupplyChainNode[]}) {
+export function NetworkCanvas({nodes, routes}: {nodes: SupplyChainNode[]; routes: SupplyChainEdge[]}) {
+  const names = new Map(nodes.map((node) => [node.id, node.name]));
+  const edges: Edge[] = routes.map((route) => ({
+    id: route.id,
+    source: route.fromNodeId,
+    target: route.toNodeId,
+    ariaLabel: `Route from ${names.get(route.fromNodeId)} to ${names.get(route.toNodeId)}`,
+    markerEnd: {type: MarkerType.ArrowClosed, color: '#6b9aa5'},
+    style: {stroke: '#6b9aa5', strokeWidth: 2},
+  }));
+
   return (
     <div className="network-canvas" aria-label="Supply-chain facilities">
-      <ReactFlow nodes={toFlowNodes(nodes)} edges={[]} fitView fitViewOptions={{padding: 0.22}} minZoom={0.2} maxZoom={1.5} nodesConnectable={false} elementsSelectable proOptions={{hideAttribution: false}}>
+      <ReactFlow nodes={toFlowNodes(nodes)} edges={edges} fitView fitViewOptions={{padding: 0.22}} minZoom={0.2} maxZoom={1.5} nodesConnectable={false} elementsSelectable proOptions={{hideAttribution: false}}>
         <Background variant={BackgroundVariant.Dots} color="rgba(159,177,181,0.25)" gap={24} />
         <Controls showInteractive={false} />
       </ReactFlow>
-      <p className="canvas-note">Facility routes require the detailed-network API; this view does not invent missing edges.</p>
     </div>
   );
 }

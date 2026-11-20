@@ -10,6 +10,7 @@ function createApp({
   simulationRunner = runSimulation,
   logger = console,
   corsOrigins = process.env.CORS_ORIGINS,
+  frontendDirectory,
 } = {}) {
   const app = express();
   const service = createSimulationService({
@@ -58,6 +59,10 @@ function createApp({
       next(error);
     }
   });
+
+  if (frontendDirectory) {
+    app.use(express.static(frontendDirectory));
+  }
 
   app.use((req, res, next) => {
     next(new ApiError(404, "NOT_FOUND", "Route was not found"));

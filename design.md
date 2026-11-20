@@ -1,5 +1,8 @@
 # SC Disruption interface contract
 
+This is the original interface plan. See the README for the current demo.
+The sign-in and role checks below are deferred.
+
 ## Product goal
 
 The frontend gives an operations analyst one clear path: choose a saved supply

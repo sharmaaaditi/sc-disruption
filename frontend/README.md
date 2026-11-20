@@ -19,9 +19,6 @@ from the project root in another terminal.
 - `npm run build` checks TypeScript and creates the production bundle.
 - `npm run test` runs the frontend tests.
 
-## Authorization development mode
-
-Production authorization waits for P2's authenticated-user endpoint. For local
-interface development only, copy `.env.example` to `.env.local` and set
-`VITE_DEMO_ROLE` to `VIEWER`, `ANALYST`, or `ADMIN`. The variable is intentionally
-unset by default and must not be treated as backend security.
+From the repository root, `npm run demo` builds the frontend and serves both
+the dashboard and API at `http://127.0.0.1:3000`. The demo requires a seeded
+local database and opens without a sign-in screen.

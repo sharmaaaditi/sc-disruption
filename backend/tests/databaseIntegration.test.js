@@ -155,6 +155,15 @@ describe("Real database API integration test", () => {
   });
 
   it("completes full flow: API -> PostgreSQL/Prisma -> SimulationEngine -> DB persistence -> retrieval API", async () => {
+    const listRes = await fetch(`${url}/api/supply-chains`);
+    assert.equal(listRes.status, 200);
+    const { data: chains } = await listRes.json();
+    const chain = chains.find(({ id }) => id === supplyChainId);
+    assert.ok(chain);
+    assert.deepEqual(chain.edges, [{
+      id: edgeId, fromNodeId: supplierId, toNodeId: warehouseId, distance: 10, travelTime: 1,
+    }]);
+
     // 1. Start simulation through HTTP API
     const startRes = await fetch(`${url}/api/supply-chains/${supplyChainId}/simulations`, {
       method: "POST",

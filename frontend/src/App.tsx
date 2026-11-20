@@ -93,13 +93,13 @@ export default function App() {
       <section className="workspace" aria-busy={loading}>
         <header className="workspace-header">
           <div><p className="eyebrow">Operating network</p><h2>{loading ? 'Loading saved networks' : selected?.name || 'No supply chain available'}</h2></div>
-          <label className="network-picker">Supply chain<select value={selected?.id || ''} onChange={(event) => {setSelectedId(event.target.value); setResult(null);}} disabled={loading || !supplyChains.length}>{supplyChains.map((chain) => <option key={chain.id} value={chain.id}>{chain.name}</option>)}</select></label>
+          <label className="network-picker">Supply chain<select value={selected?.id || ''} onChange={(event) => {setSelectedId(event.target.value); setResult(null);}} disabled={loading || running || !supplyChains.length}>{supplyChains.map((chain) => <option key={chain.id} value={chain.id}>{chain.name}</option>)}</select></label>
         </header>
 
         <div className="workspace-grid">
           <article className="network-panel">
-            <div className="panel-heading"><div><p className="eyebrow">Facility map</p><h3>{selected ? `${selected.nodes.length} connected facilities` : 'Waiting for data'}</h3></div><Database aria-hidden="true" /></div>
-            {selected ? <NetworkCanvas nodes={selected.nodes} /> : <div className="empty-state"><Activity aria-hidden="true" /><p>Start the backend and seed PostgreSQL to load a network.</p></div>}
+            <div className="panel-heading"><div><p className="eyebrow">Facility map</p><h3>{selected ? `${selected.nodes.length} facilities, ${selected.edges?.length ?? 0} routes` : 'Waiting for data'}</h3></div><Database aria-hidden="true" /></div>
+            {selected ? <NetworkCanvas key={selected.id} nodes={selected.nodes} routes={selected.edges ?? []} /> : <div className="empty-state"><Activity aria-hidden="true" /><p>Start the backend and seed PostgreSQL to load a network.</p></div>}
           </article>
           {selected ? <SimulationPanel supplyChain={selected} busy={running} onRun={runSimulation} /> : <aside className="simulation-panel simulation-panel--empty"><p>Simulation controls become available after a network loads.</p></aside>}
         </div>

@@ -12,7 +12,7 @@ From the repository root, install the database package, apply migrations, and
 load the demo data:
 
 ```bash
-npm ci --prefix database
+npm ci --prefix database --ignore-scripts
 cd database
 npx prisma generate
 npx prisma migrate deploy

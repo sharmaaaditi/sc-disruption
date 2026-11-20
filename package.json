@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "node --watch backend/server.js",
     "start": "node backend/server.js",
+    "demo": "npm run frontend:build && node backend/server.js --local-demo",
     "test": "node --test simulation/tests/*.test.js backend/tests/*.test.js",
     "checkpoint": "node simulation/scripts/checkpointRun.js",
     "test:integration": "node --test backend/tests/databaseIntegration.test.js",

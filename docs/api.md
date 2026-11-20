@@ -40,7 +40,9 @@ npm run dev
 
 ## List supply chains
 
-`GET /api/supply-chains` returns the supply chains and their nodes in `data`.
+`GET /api/supply-chains` returns the supply chains in `data`. Each chain includes
+its `nodes` and directed `edges`. An edge has an ID, source and destination node
+IDs, and optional distance and travel time values.
 
 ## Start a simulation
 
@@ -156,7 +158,7 @@ and cleans up only those records upon test completion.
 1. Create a dedicated test database (e.g. `sc_disruption_test`) in PostgreSQL.
 2. Apply migrations to the test database:
    ```bash
-   DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/sc_disruption_test?schema=public" npx prisma migrate deploy --schema=database/prisma/schema.prisma
+   (cd database && DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/sc_disruption_test?schema=public" npx prisma migrate deploy)
    ```
 3. Run the integration test:
    ```bash
