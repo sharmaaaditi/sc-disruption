@@ -67,8 +67,8 @@ export function ResultsDashboard({result}: {result: SimulationResult}) {
           {metricDefinitions.map(({key, label, icon: Icon, tone}) => (
             <article className={`metric-card metric-card--${tone}`} key={key}>
               <Icon aria-hidden="true" />
-              <strong>{formatMetric(result.metrics?.[key])}</strong>
-              <span>{label}</span>
+              <strong>{key === 'recoveryTime' && result.metrics?.recoveryTime === 0 ? '—' : formatMetric(result.metrics?.[key])}</strong>
+              <span>{key === 'recoveryTime' && result.metrics?.recoveryTime === 0 ? 'No recovery in this run' : label}</span>
             </article>
           ))}
         </div>
