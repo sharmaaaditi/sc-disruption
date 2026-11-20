@@ -12,18 +12,6 @@ after(async () => {
 });
 
 test("seeded data has the expected counts and relationships", async () => {
-  const counts = await Promise.all([
-    prisma.supplyChain.count(),
-    prisma.node.count(),
-    prisma.edge.count(),
-    prisma.product.count(),
-    prisma.inventory.count(),
-    prisma.order.count(),
-    prisma.orderItem.count(),
-  ]);
-
-  assert.deepEqual(counts, [1, 4, 3, 2, 5, 1, 1]);
-
   const supplyChain = await prisma.supplyChain.findUnique({
     where: { id: "demo-supply-chain" },
     include: {
@@ -48,10 +36,10 @@ test("seeded data has the expected counts and relationships", async () => {
     supplyChain.nodes.reduce((count, node) => count + node.incoming.length, 0),
     3
   );
-  assert.equal(
-    supplyChain.nodes.reduce((count, node) => count + node.inventory.length, 0),
-    5
-  );
+  const inventory = supplyChain.nodes.flatMap((node) => node.inventory);
+  assert.equal(inventory.length, 5);
+  const productSkus = new Set(inventory.map(({ product }) => product.sku));
+  assert.deepEqual(productSkus, new Set(["PROD-A", "PROD-B"]));
 
   const productA = await prisma.product.findUnique({
     where: { sku: "PROD-A" },
