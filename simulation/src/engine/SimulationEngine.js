@@ -134,6 +134,21 @@ class SimulationEngine {
     // 3. Fulfill customer orders
     for (const order of this.orders) {
       if (order.remainingQuantity > 0 && order.dueStep <= currentStep) {
+        if (blockedNodes.has(order.nodeId)) {
+          if (order.status !== 'DELAYED') {
+            this.logEvent(
+              currentStep,
+              EventType.ORDER_DELAYED,
+              'ORDER',
+              order.orderId,
+              `Order ${order.orderId} is waiting because ${order.nodeId} is offline`
+            );
+          }
+          order.status = 'DELAYED';
+          this.delayedOrders.add(order.orderId);
+          continue;
+        }
+
         const available = this.getStock(order.nodeId, order.productId);
 
         if (available >= order.remainingQuantity) {

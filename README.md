@@ -133,9 +133,11 @@ For development with live reload, run `npm run dev` and
 3. Explain the result. The retailer starts with 100 units and the order
    needs 50, so the disruption activates but the retailer still fulfils
    all 50 units without a delay.
-4. Try a duration of **10** with the same 10-step window. Recovery is due
-   at step 11, outside the run, so the timeline has no recovery event.
-   The recovery metric uses zero when the run ends before recovery.
+4. Select **Facility outage → Retailer A** and keep the same settings. The
+   order is delayed at step 1 and all 50 units are fulfilled when the
+   retailer reopens at step 4.
+5. Change the retailer outage duration to **10** and rerun. The retailer
+   stays offline through the run and ends with **50 units of unfilled demand**.
 
 For the viva, describe the data flow in one sentence: React sends the
 scenario to Express, Prisma reads the network and inventory from PostgreSQL,

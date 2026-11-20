@@ -79,6 +79,28 @@ describe('SimulationEngine tests', () => {
     assert.equal(res.metrics.stockouts, 1);
   });
 
+  it('queues orders at an offline retailer until it reopens', () => {
+    const input = handCalculatedInput({
+      orders: [{ orderId: 'order-1', nodeId: 'ret-1', productId: 'prod-1', quantity: 5, dueStep: 0 }],
+      disruptions: [{ id: 'outage', type: 'NODE_OUTAGE', targetId: 'ret-1', startStep: 0, duration: 2 }],
+      config: { totalSteps: 2 },
+    });
+
+    const offline = runSimulation(input);
+    assert.equal(offline.metrics.fulfilledQuantity, 0);
+    assert.equal(offline.metrics.remainingQuantity, 5);
+    assert.equal(offline.metrics.delayedOrders, 1);
+    assert.equal(offline.metrics.stockouts, 0);
+    assert.equal(offline.timeline[1].inventory['ret-1']['prod-1'], 10);
+    assert.deepEqual(offline.events.filter((event) => event.targetId === 'order-1').map(({type}) => type), ['ORDER_DELAYED']);
+
+    const recovered = runSimulation({ ...input, config: { totalSteps: 3 } });
+    assert.equal(recovered.metrics.fulfilledQuantity, 5);
+    assert.equal(recovered.metrics.remainingQuantity, 0);
+    assert.equal(recovered.metrics.delayedOrders, 1);
+    assert.equal(recovered.events.find(({ type }) => type === 'ORDER_FULFILLED').step, 2);
+  });
+
   it('does not count the same unresolved stockout as multiple stockouts', () => {
     const input = handCalculatedInput({
       inventory: [

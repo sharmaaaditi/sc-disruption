@@ -83,7 +83,7 @@ export default function App() {
         <div className="hero-copy">
           <p className="eyebrow">Supply-chain resilience workspace</p>
           <h1>See the weak link. <img className="inline-network-strip" src={networkStrip} alt="" /> Test the response.</h1>
-          <p className="lede">Choose a saved network, interrupt a supplier, and read the operational impact from one traceable simulation run.</p>
+          <p className="lede">Choose a saved network, simulate an outage, and see what happens to stock and orders.</p>
         </div>
         <div className="intro-orbit" aria-hidden="true"><Network size={52} strokeWidth={1.5} /><span className="orbit orbit-one" /><span className="orbit orbit-two" /></div>
       </section>
@@ -101,13 +101,13 @@ export default function App() {
             <div className="panel-heading"><div><p className="eyebrow">Facility map</p><h3>{selected ? `${selected.nodes.length} facilities, ${selected.edges?.length ?? 0} routes` : 'Waiting for data'}</h3></div><Database aria-hidden="true" /></div>
             {selected ? <NetworkCanvas key={selected.id} nodes={selected.nodes} routes={selected.edges ?? []} /> : <div className="empty-state"><Activity aria-hidden="true" /><p>Start the backend and seed PostgreSQL to load a network.</p></div>}
           </article>
-          {selected ? <SimulationPanel supplyChain={selected} busy={running} onRun={runSimulation} /> : <aside className="simulation-panel simulation-panel--empty"><p>Simulation controls become available after a network loads.</p></aside>}
+          {selected ? <SimulationPanel key={selected.id} supplyChain={selected} busy={running} onRun={runSimulation} /> : <aside className="simulation-panel simulation-panel--empty"><p>Simulation controls become available after a network loads.</p></aside>}
         </div>
       </section>
 
       {result ? <ResultsDashboard result={result} /> : (
         <section className="result-placeholder" id="results" aria-live="polite">
-          <p className="eyebrow">Impact analysis</p><h2>Results will collect here.</h2><p>Run a supplier interruption to reveal metrics, final inventory, delayed orders, and the ordered event timeline.</p>
+          <p className="eyebrow">Impact analysis</p><h2>Results will collect here.</h2><p>Run an outage to see final inventory, order delays, and the event timeline.</p>
         </section>
       )}
     </main>
