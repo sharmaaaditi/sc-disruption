@@ -11,7 +11,7 @@ export type SimulationMetrics = {
 };
 export type SimulationResult = {
   runId: string; scenarioId: string; status: string; totalSteps: number;
-  metrics: SimulationMetrics;
+  metrics: SimulationMetrics | null;
   finalState: {inventory?: Array<{nodeId: string; productId: string; quantity: number}>; orders?: Array<{orderId: string; status: string}>} | null;
   events: SimulationEvent[];
 };

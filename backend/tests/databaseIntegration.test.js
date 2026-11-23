@@ -315,6 +315,12 @@ describe("Real database API integration test", () => {
       assert.ok(failedDbRun);
       assert.equal(failedDbRun.status, "FAILED");
       assert.ok(failedDbRun.completedAt);
+      const failedRunDetails = await fetch(`${url}/api/simulations/${failedDbRun.id}`);
+      assert.equal(failedRunDetails.status, 200);
+      const { data: failedRun } = await failedRunDetails.json();
+      assert.equal(failedRun.status, "FAILED");
+      assert.equal(failedRun.metrics, null);
+      assert.equal(failedRun.finalState, null);
 
       // Verify history API returns both runs and filters FAILED correctly
       const historyWithFailed = await fetch(
