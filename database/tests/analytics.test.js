@@ -155,6 +155,7 @@ test("saving a run result again replaces events without duplicates", async () =>
   assert.equal(stored.events.length, 1);
   assert.equal(stored.events[0].message, "Replacement event");
   assert.equal(stored.metrics.totalOrders, 1);
+  assert.equal(stored.metrics.finalState, null);
 });
 
 test("listRunsBySupplyChain filters by supply chain and status with pagination", async () => {

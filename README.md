@@ -10,15 +10,14 @@ The current MVP lets users choose a saved network, run a supplier disruption, an
 
 A failure at one point in a supply chain can cause cascading delays, inventory shortages, stockouts, and increased costs.
 
-SC Disruption simulates these scenarios and helps evaluate possible recovery strategies.
+SC Disruption shows how a disruption affects order fulfilment, inventory, and recovery time.
 
 ## 🚀 Key Features
 
 ### 🌐 Network Visualization
 
 * Suppliers, warehouses, distribution centers, and retailers
-* Facility map for the saved network
-* Network data loaded from the database API
+* Facility map with arrows for the routes stored in PostgreSQL
 
 Detailed route and capacity visualizations remain planned.
 
@@ -41,7 +40,6 @@ Detailed route and capacity visualizations remain planned.
 * Affected nodes
 * Delayed orders
 * Stockouts
-* Additional costs
 * Recovery time
 
 ### 🔄 Recovery & Optimization
@@ -54,17 +52,11 @@ The supply chain is modeled as a **directed weighted graph**.
 
 Algorithms include:
 
-* BFS/DFS dependency traversal
-* Failure propagation
-* Reachability analysis
-* Shortest-path routing
-* Shortest-path and reachability helpers
+* Breadth-first and depth-first traversal
+* Upstream reachability and shortest-path helpers
+* Step-by-step inventory, order, and disruption processing
 
 Capacity-aware routing and alternative-path optimization are planned extensions.
-
-Optimization considers:
-
-`Transportation Cost + Delay Penalty + Stockout Penalty + Recovery Time`
 
 ## 🔄 How It Works
 
@@ -109,16 +101,59 @@ sc-disruption-app/
 
 ## ⚙️ Setup
 
+Use Node.js 22.12+ (or a compatible newer LTS) and a running local PostgreSQL
+server. Create a database, then set the connection in `database/.env` as
+described in the [database setup guide](database/README.md).
+
 ```bash
 git clone https://github.com/sharmaaaditi/sc-disruption.git
 cd sc-disruption
 npm ci
 npm ci --prefix frontend
-
-# Configure PostgreSQL and database/.env first; see database/README.md.
-npm run dev
-npm run frontend:dev
+npm ci --prefix database --ignore-scripts
+(cd database && npx prisma generate && npx prisma migrate deploy && node seed.js)
+npm run demo
 ```
+
+Open [the local demo](http://127.0.0.1:3000). One terminal serves both the
+dashboard and the API. After the first setup, run `npm run demo` whenever
+you want to start the app. The demo binds to your own machine and requires
+no sign-in.
+
+For development with live reload, run `npm run dev` and
+`npm run frontend:dev` in separate terminals.
+
+## Demo and viva walkthrough
+
+1. Select **Demo Supply Chain** and trace the arrows from Supplier A
+   through the warehouse and distribution center to Retailer A.
+2. Select **Supplier A**, start at step **1**, set duration to **3**,
+   and run for **10** steps. Open the event timeline and show activation
+   at step 1 and recovery at step 4.
+3. Explain the result. The retailer starts with 100 units and the order
+   needs 50, so the disruption activates but the retailer still fulfils
+   all 50 units without a delay.
+4. Select **Facility outage → Retailer A** and keep the same settings. The
+   order is delayed at step 1 and all 50 units are fulfilled when the
+   retailer reopens at step 4.
+5. Change the retailer outage duration to **10** and rerun. The retailer
+   stays offline through the run and ends with **50 units of unfilled demand**.
+
+For the viva, describe the data flow in one sentence: React sends the
+scenario to Express, Prisma reads the network and inventory from PostgreSQL,
+the JavaScript engine advances one step at a time, and Prisma saves the run,
+events, and metrics before the results come back to the dashboard.
+
+## Checks
+
+```bash
+npm test
+npm run frontend:test
+npm run frontend:build
+```
+
+Set `DATABASE_URL_TEST` to a separate migrated PostgreSQL database to run
+the API persistence test. See the [API testing instructions](docs/api.md#database-api-integration-testing).
 
 ## 🏁 Conclusion
 

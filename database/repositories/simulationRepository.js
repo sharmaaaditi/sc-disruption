@@ -1,4 +1,5 @@
 const prisma = require("../client");
+const { Prisma } = require("@prisma/client");
 
 function createScenario({ supplyChainId, name, disruptions = [] }) {
   return prisma.scenario.create({
@@ -170,7 +171,7 @@ function mapMetrics(metrics, finalState) {
     recoveryTime: metrics.recoveryTime || 0,
     affectedNodes: metrics.affectedNodes || [],
     affectedEdges: metrics.affectedEdges || [],
-    finalState: finalState || undefined,
+    finalState: finalState ?? Prisma.DbNull,
   };
 }
 

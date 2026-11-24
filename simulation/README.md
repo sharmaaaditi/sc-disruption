@@ -7,6 +7,7 @@ The Week 1 engine models the supply chain as a directed graph and advances it in
 - A disruption is active from `startStep` through `startStep + duration - 1`.
 - Recovery occurs at `startStep + duration` when that step is inside the configured simulation window.
 - Shipments arriving at a blocked destination remain in transit and are retried on the next step.
+- Orders due at an offline facility wait until it reopens. The wait counts as a delay without recording a stockout while the facility is offline.
 - Orders can be partially fulfilled. Any remaining quantity keeps the order delayed until later inventory arrives.
 - `stockoutEvents` counts every step that observes a shortage. `stockouts` counts each affected order, node, and product combination once.
 - `additionalCost` is `0` in Week 1 because transport and penalty costs are outside the agreed MVP model.

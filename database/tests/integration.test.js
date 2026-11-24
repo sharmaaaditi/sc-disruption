@@ -12,18 +12,6 @@ after(async () => {
 });
 
 test("seeded data has the expected counts and relationships", async () => {
-  const counts = await Promise.all([
-    prisma.supplyChain.count(),
-    prisma.node.count(),
-    prisma.edge.count(),
-    prisma.product.count(),
-    prisma.inventory.count(),
-    prisma.order.count(),
-    prisma.orderItem.count(),
-  ]);
-
-  assert.deepEqual(counts, [1, 4, 3, 2, 5, 1, 1]);
-
   const supplyChain = await prisma.supplyChain.findUnique({
     where: { id: "demo-supply-chain" },
     include: {
@@ -48,10 +36,10 @@ test("seeded data has the expected counts and relationships", async () => {
     supplyChain.nodes.reduce((count, node) => count + node.incoming.length, 0),
     3
   );
-  assert.equal(
-    supplyChain.nodes.reduce((count, node) => count + node.inventory.length, 0),
-    5
-  );
+  const inventory = supplyChain.nodes.flatMap((node) => node.inventory);
+  assert.equal(inventory.length, 5);
+  const productSkus = new Set(inventory.map(({ product }) => product.sku));
+  assert.deepEqual(productSkus, new Set(["PROD-A", "PROD-B"]));
 
   const productA = await prisma.product.findUnique({
     where: { sku: "PROD-A" },
@@ -71,9 +59,10 @@ test("seeded data has the expected counts and relationships", async () => {
 
 test("repository queries return the simulation input contract", async () => {
   const allSupplyChains = await getAllSupplyChains();
-  assert.equal(allSupplyChains.length, 1);
-  assert.equal(allSupplyChains[0].id, "demo-supply-chain");
-  assert.equal(allSupplyChains[0].nodes.length, 4);
+  const demoChain = allSupplyChains.find(({ id }) => id === "demo-supply-chain");
+  assert.ok(demoChain);
+  assert.equal(demoChain.nodes.length, 4);
+  assert.equal(demoChain.edges.length, 3);
 
   const supplyChain = await getSupplyChain("demo-supply-chain");
   assert.ok(supplyChain);

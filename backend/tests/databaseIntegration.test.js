@@ -155,6 +155,15 @@ describe("Real database API integration test", () => {
   });
 
   it("completes full flow: API -> PostgreSQL/Prisma -> SimulationEngine -> DB persistence -> retrieval API", async () => {
+    const listRes = await fetch(`${url}/api/supply-chains`);
+    assert.equal(listRes.status, 200);
+    const { data: chains } = await listRes.json();
+    const chain = chains.find(({ id }) => id === supplyChainId);
+    assert.ok(chain);
+    assert.deepEqual(chain.edges, [{
+      id: edgeId, fromNodeId: supplierId, toNodeId: warehouseId, distance: 10, travelTime: 1,
+    }]);
+
     // 1. Start simulation through HTTP API
     const startRes = await fetch(`${url}/api/supply-chains/${supplyChainId}/simulations`, {
       method: "POST",
@@ -306,6 +315,12 @@ describe("Real database API integration test", () => {
       assert.ok(failedDbRun);
       assert.equal(failedDbRun.status, "FAILED");
       assert.ok(failedDbRun.completedAt);
+      const failedRunDetails = await fetch(`${url}/api/simulations/${failedDbRun.id}`);
+      assert.equal(failedRunDetails.status, 200);
+      const { data: failedRun } = await failedRunDetails.json();
+      assert.equal(failedRun.status, "FAILED");
+      assert.equal(failedRun.metrics, null);
+      assert.equal(failedRun.finalState, null);
 
       // Verify history API returns both runs and filters FAILED correctly
       const historyWithFailed = await fetch(

@@ -1,6 +1,7 @@
 export type NodeType = 'SUPPLIER' | 'WAREHOUSE' | 'DISTRIBUTION_CENTER' | 'RETAILER';
 export type SupplyChainNode = {id: string; name: string; type: NodeType};
-export type SupplyChain = {id: string; name: string; nodes: SupplyChainNode[]};
+export type SupplyChainEdge = {id: string; fromNodeId: string; toNodeId: string};
+export type SupplyChain = {id: string; name: string; nodes: SupplyChainNode[]; edges?: SupplyChainEdge[]};
 export type SimulationEvent = {step: number; sequence?: number; type: string; targetType?: string; targetId?: string; message?: string};
 export type SimulationMetrics = {
   totalOrders?: number; totalDemand?: number; fulfilledQuantity?: number;
@@ -10,7 +11,7 @@ export type SimulationMetrics = {
 };
 export type SimulationResult = {
   runId: string; scenarioId: string; status: string; totalSteps: number;
-  metrics: SimulationMetrics;
+  metrics: SimulationMetrics | null;
   finalState: {inventory?: Array<{nodeId: string; productId: string; quantity: number}>; orders?: Array<{orderId: string; status: string}>} | null;
   events: SimulationEvent[];
 };

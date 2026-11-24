@@ -103,7 +103,7 @@ function createSimulationService({
         status: run.status,
         totalSteps: run.totalSteps,
         completedAt: run.completedAt,
-        metrics: normalizeMetrics(run.metrics),
+        metrics: run.metrics ? normalizeMetrics(run.metrics) : null,
         finalState: run.metrics?.finalState || null,
         events: run.events || [],
       };
